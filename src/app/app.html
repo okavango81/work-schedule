@@ -1,93 +1,82 @@
 <div class="container">
   <header class="header">
     <h2>Gestor de Escala</h2>
-    <p>Organizador de folgas e plantões</p>
   </header>
 
   <section class="form-grid">
     <div class="field">
-      <label>Ano</label>
-      <select [(ngModel)]="ano">
-        <option [value]="2026">2026</option>
-        <option [value]="2027">2027</option>
+      <label>Mês de Referência</label>
+      <select [(ngModel)]="mes" (change)="limpar()">
+        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">
+          {{ m | number:'2.0' }}
+        </option>
       </select>
     </div>
 
     <div class="field">
-      <label>Mês</label>
-      <select [(ngModel)]="mes">
-        <option [value]="1">Janeiro</option>
-        <option [value]="2">Fevereiro</option>
-        <option [value]="3">Março</option>
-        <option [value]="4">Abril</option>
-        <option [value]="5">Maio</option>
-        <option [value]="6">Junho</option>
-        <option [value]="7">Julho</option>
-        <option [value]="8">Agosto</option>
-        <option [value]="9">Setembro</option>
-        <option [value]="10">Outubro</option>
-        <option [value]="11">Novembro</option>
-        <option [value]="12">Dezembro</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Início (Dia 01)</label>
-      <select [(ngModel)]="localInicial">
+      <label>Início do Mês</label>
+      <select [(ngModel)]="localInicial" (change)="gerarEscala()">
         <option value="MENINO JESUS">Menino Jesus</option>
         <option value="SAMARITANO">Samaritano</option>
       </select>
     </div>
 
-    <div class="field">
-      <label>Folga Pré-definida (Dia)</label>
-      <input type="number" [(ngModel)]="diaFolgaFixa" placeholder="Opcional">
+    <div class="actions">
+      <button class="btn-outline" (click)="limpar()">Resetar Folgas</button>
     </div>
   </section>
 
-  <div class="actions">
-    <button class="btn-outline" (click)="limpar()">Limpar Tudo</button>
-    <button class="btn-primary" (click)="gerarEscala()">Calcular Melhor Estratégia</button>
-  </div>
-
-  <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 2rem;">
+  <hr class="divider">
 
   @if (resultado()) {
     <section class="summary-cards">
       <div class="card highlight">
-        <small>Sequência de Trabalho</small>
-        <span>Máx {{ resultado()?.maiorSequencia }} dias seguidos</span>
+        <small>Sequência Máxima</small>
+        <span>{{ resultado()?.maiorSequencia }} dias</span>
       </div>
       <div class="card">
         <small>Folgas No Menino Jesus</small>
-        <span>Dias {{ resultado()?.folgasMJ?.join(', ') }}</span>
+        <span>{{ resultado()?.folgasMJ?.join(' - ') }}</span>
       </div>
       <div class="card">
         <small>Folgas No Samaritano</small>
-        <span>Dias {{ resultado()?.folgasS?.join(', ') }}</span>
+        <span>{{ resultado()?.folgasS?.join(' - ') }}</span>
       </div>
     </section>
 
     <div class="calendar-grid">
-      @for (item of getDiasDoMes(); track item.dia) {
+      @for (item of getDiasParaExibir(); track (item.dia + '-' + item.mes)) {
+
+        @if (item.dia === 1 && item.mes !== mes()) {
+          <div class="month-divider">
+            PRÓXIMO MÊS (Quinzena Samaritano)
+          </div>
+        }
+
         <div class="day-card"
              [class.folga]="item.status.includes('Folga')"
-             [class.weekend]="item.diaSemana === 'SÁB' || item.diaSemana === 'DOM'">
+             [class.domingo]="item.isDomingo"
+             [class.proximo-mes]="item.mes !== mes()"
+             [class.manual]="item.mes === mes() && (folgasManuaisMJ().includes(item.dia) || folgasManuaisS().includes(item.dia))"
+             (click)="alternarFolgaManual(item.dia, item.mes, item.status)">
 
           <div class="day-header">
             <span class="weekday">{{ item.diaSemana }}</span>
             <span class="day-num">{{ item.dia | number:'2.0' }}</span>
+
+            @if (item.mes === mes() && (folgasManuaisMJ().includes(item.dia) || folgasManuaisS().includes(item.dia))) {
+              <span class="pin">📍</span>
+            }
           </div>
 
           <div class="status">
             {{ item.status }}
+            <span class="month-tag">{{ item.nomeMes }}</span>
           </div>
         </div>
       }
     </div>
   } @else {
-    <div style="text-align: center; color: #94a3b8; padding: 3rem;">
-      <p>Preencha os dados e clique em calcular para gerar sua escala otimizada.</p>
-    </div>
+    <div class="loading">Calculando melhor estratégia...</div>
   }
 </div>

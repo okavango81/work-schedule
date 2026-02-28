@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Resultado, WorkSchedule } from './service/work-schedule';
@@ -11,61 +11,84 @@ import { Resultado, WorkSchedule } from './service/work-schedule';
   styleUrl: './app.scss'
 })
 export class App {
-
-  // Inputs
+  // Configurações Iniciais
   ano = signal(2026);
   mes = signal(new Date().getMonth() + 1);
   localInicial = signal<'MENINO JESUS' | 'SAMARITANO'>('MENINO JESUS');
-  diaFolgaFixa = signal<number | undefined>(undefined);
 
-  // Resultado
+  // Controle de Folgas Manuais
+  folgasManuaisMJ = signal<number[]>([]);
+  folgasManuaisS = signal<number[]>([]);
+
+  // Armazenamento do Cálculo
   resultado = signal<Resultado | null>(null);
 
-  constructor(private scheduleService: WorkSchedule) {}
-
-  gerarEscala() {
-    const res = this.scheduleService.calcularMelhorEscala(
-      this.ano(),
-      this.mes(),
-      this.localInicial(),
-      this.diaFolgaFixa()
-    );
-    this.resultado.set(res);
+  constructor(private scheduleService: WorkSchedule) {
+    // Gera a escala inicial automaticamente ao abrir
+    this.gerarEscala();
   }
 
-  getDiasDoMes() {
-    if (!this.resultado()) return [];
-    const totalDias = new Date(this.ano(), this.mes(), 0).getDate();
-    const dias = [];
-
-    const res = this.resultado()!;
-    for (let i = 1; i <= totalDias; i++) {
-      // Criar data para pegar o dia da semana
-      const dataRef = new Date(this.ano(), this.mes() - 1, i);
-      const diaSemana = dataRef.toLocaleDateString('pt-BR', { weekday: 'short' })
-        .replace('.', ''); // Ex: seg, ter, qua
-
-      let status = (i % 2 !== 0 && this.localInicial() === 'MENINO JESUS') ||
-      (i % 2 === 0 && this.localInicial() === 'SAMARITANO')
-        ? 'MENINO JESUS' : 'SAMARITANO';
-
-      if (res.folgasMJ.includes(i)) status = 'Folga MENINO JESUS';
-      if (res.folgasS.includes(i)) status = 'Folga SAMARITANO';
-
-      dias.push({
-        dia: i,
-        diaSemana: diaSemana.toUpperCase(),
-        status
-      });
+  gerarEscala() {
+    try {
+      const res = this.scheduleService.calcularMelhorEscala(
+        this.ano(),
+        this.mes(),
+        this.localInicial(),
+        this.folgasManuaisMJ(),
+        this.folgasManuaisS()
+      );
+      this.resultado.set(res);
+    } catch (error) {
+      console.error("Erro ao calcular escala:", error);
     }
-    return dias;
+  }
+
+  alternarFolgaManual(dia: number, mesItem: number, statusAtual: string) {
+    // Impede alteração nos dias do mês seguinte (visualização apenas)
+    if (mesItem !== this.mes()) return;
+
+    const mj = [...this.folgasManuaisMJ()];
+    const sam = [...this.folgasManuaisS()];
+
+    // Lógica de alternância (Toggle)
+    if (mj.includes(dia)) {
+      this.folgasManuaisMJ.set(mj.filter(d => d !== dia));
+    } else if (sam.includes(dia)) {
+      this.folgasManuaisS.set(sam.filter(d => d !== dia));
+    } else if (statusAtual === 'MENINO JESUS') {
+      if (mj.length < 2) {
+        mj.push(dia);
+        this.folgasManuaisMJ.set(mj);
+      }
+    } else if (statusAtual === 'SAMARITANO') {
+      if (sam.length < 2) {
+        sam.push(dia);
+        this.folgasManuaisS.set(sam);
+      }
+    }
+
+    this.gerarEscala();
+  }
+
+  getDiasParaExibir() {
+    const res = this.resultado();
+    if (!res || !res.escalaCompleta) return [];
+
+    return res.escalaCompleta.map(item => {
+      // Cria a data correta para cada item (mês atual ou próximo)
+      const dataRef = new Date(item.ano, item.mes - 1, item.dia);
+      return {
+        ...item,
+        diaSemana: dataRef.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
+        isDomingo: dataRef.getDay() === 0,
+        nomeMes: dataRef.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
+      };
+    });
   }
 
   limpar() {
-    this.ano.set(new Date().getFullYear());
-    this.mes.set(new Date().getMonth() + 1);
-    this.localInicial.set('MENINO JESUS');
-    this.diaFolgaFixa.set(undefined);
-    this.resultado.set(null);
+    this.folgasManuaisMJ.set([]);
+    this.folgasManuaisS.set([]);
+    this.gerarEscala();
   }
 }

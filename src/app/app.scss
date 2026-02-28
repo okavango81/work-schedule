@@ -1,5 +1,5 @@
 :host {
-  // Variáveis de Design
+  // --- Variáveis de Design ---
   --primary: #2563eb;
   --success: #16a34a;
   --danger: #dc2626;
@@ -16,6 +16,7 @@
   padding: 2rem;
 }
 
+// --- Layout Principal ---
 .container {
   max-width: 900px;
   margin: 0 auto;
@@ -32,7 +33,7 @@
   h2 {
     color: var(--text-main);
     margin-bottom: 0.5rem;
-    font-weight: 800;
+    font-weight: 900;
   }
 
   p {
@@ -41,6 +42,7 @@
   }
 }
 
+// --- Formulário e Ações ---
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -77,6 +79,7 @@
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  margin-top: 1.6rem;
 
   button {
     flex: 1;
@@ -97,14 +100,15 @@
 
     &.btn-outline {
       font-size: 0.88rem;
-      background: #e7f2ff;
+      background: #e0f7ff;
       border: 1px solid #cbd5e1;
       color: var(--text-muted);
-      &:hover { background: #f1f5f9; color: var(--text-main); }
+      &:hover { background: #e2e8f0; color: var(--text-main); }
     }
   }
 }
 
+// --- Cards de Resumo ---
 .summary-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -139,73 +143,130 @@
   }
 }
 
+// --- Grid do Calendário ---
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
 
-  .day-card {
-    padding: 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid var(--border);
-    background: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 90px;
-    transition: transform 0.2s, box-shadow 0.2s;
-
-    &:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .day-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-
-      .weekday {
-        font-size: 0.65rem;
-        font-weight: 700;
-        color: #7b91a8; // Cor "apagadinha"
-        text-transform: uppercase;
-      }
-
-      .day-num {
-        font-size: 1rem;
-        font-weight: 800;
-        color: var(--text-muted);
-      }
-    }
-
-    .status {
-      font-size: 0.75rem;
-      font-weight: 700;
-      line-height: 1.2;
-      color: #475569;
-      margin-top: 0.5rem;
-    }
-
-    // Estados Especiais
-    &.folga {
-      background: #d7ffe0;
-      border-color: #bbf7d0;
-      .status { color: var(--success); }
-      .weekday { color: #86efac; } // Verde apagadinho na folga
-    }
-
-    //&.weekend {
-    //  background-color: #f8fafc;
-    //  border-style: dashed;
-    //  .day-num { color: #94a3b8; }
-    //}
+  .month-divider {
+    grid-column: 1 / -1;
+    background: #f8fafc;
+    color: #64748b;
+    padding: 10px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border-radius: 6px;
+    border: 1px dashed #cbd5e1;
+    margin: 15px 0 5px 0;
   }
 }
 
-// Responsividade para telas muito pequenas
+// --- Cartão do Dia ---
+.day-card {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 90px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  // Estilo quando fixado manualmente
+  &.manual {
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
+
+    &::after {
+      content: 'FIXO';
+      position: absolute;
+      bottom: 5px;
+      right: 8px;
+      font-size: 0.5rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+  }
+
+  // Estilo para visualização do mês seguinte
+  &.proximo-mes {
+    opacity: 0.6;
+    background: #f1f5f9;
+    border-style: dotted;
+    transform: scale(0.95);
+    cursor: not-allowed;
+    &:hover { transform: none; box-shadow: none; }
+  }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .weekday {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #7b91a8;
+      text-transform: uppercase;
+    }
+
+    .day-num {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+  }
+
+  .status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #475569;
+    margin-top: 0.5rem;
+  }
+
+  .month-tag {
+    display: block;
+    font-size: 0.55rem;
+    margin-top: 4px;
+    font-weight: bold;
+    color: #94a3b8;
+  }
+
+  // --- Estados de Cores ---
+  &.folga {
+    background: #d7ffe0;
+    border-color: #bbf7d0;
+    .status { color: var(--success); }
+    .weekday { color: #5dbb7e; }
+  }
+
+  &.domingo {
+    background-color: #fef2f2;
+    border: 1.5px solid #fecaca;
+    .weekday { color: var(--danger); font-weight: 900; }
+  }
+
+  &.folga.domingo {
+    background: #d7ffe0;
+    border-color: var(--success);
+  }
+}
+
+// --- Responsividade ---
 @media (max-width: 480px) {
   :host { padding: 1rem; }
-  .calendar-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .calendar-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   .actions { flex-direction: column; }
 }
