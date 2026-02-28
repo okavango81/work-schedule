@@ -7,9 +7,11 @@
     <div class="field">
       <label>Mês de Referência</label>
       <select [(ngModel)]="mes" (change)="limpar()">
-        <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">
-          {{ m | number:'2.0' }}
-        </option>
+        @for (m of [1,2,3,4,5,6,7,8,9,10,11,12]; track m) {
+          <option [value]="m">
+            {{ m | number:'2.0' }}
+          </option>
+        }
       </select>
     </div>
 
@@ -22,7 +24,7 @@
     </div>
 
     <div class="actions">
-      <button class="btn-outline" (click)="limpar()">Resetar Folgas</button>
+      <button class="btn-outline" (click)="limpar()">Resetar Folgas Manuais</button>
     </div>
   </section>
 
@@ -56,6 +58,7 @@
         <div class="day-card"
              [class.folga]="item.status.includes('Folga')"
              [class.domingo]="item.isDomingo"
+             [class.sabado]="item.isSabado"
              [class.proximo-mes]="item.mes !== mes()"
              [class.manual]="item.mes === mes() && (folgasManuaisMJ().includes(item.dia) || folgasManuaisS().includes(item.dia))"
              (click)="alternarFolgaManual(item.dia, item.mes, item.status)">

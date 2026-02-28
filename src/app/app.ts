@@ -1,4 +1,4 @@
-import { Component, signal, effect } from '@angular/core';
+import { Component, signal} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Resultado, WorkSchedule } from './service/work-schedule';
@@ -80,6 +80,7 @@ export class App {
       return {
         ...item,
         diaSemana: dataRef.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
+        isSabado:dataRef.getDay() === 6,
         isDomingo: dataRef.getDay() === 0,
         nomeMes: dataRef.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
       };
