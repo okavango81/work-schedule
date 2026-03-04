@@ -71,8 +71,8 @@ export class WorkSchedule {
         const seq = this.calcularMaiorSequencia(copia);
         if (seq < melhor.maiorSequencia) {
           melhor.maiorSequencia = seq;
-          melhor.folgasMJ = [...folgasManuaisMJ, ...cMJ.map(i => i + 1)];
-          melhor.folgasS = [...folgasManuaisS, ...cS.map(i => i + 1)];
+          melhor.folgasMJ = [...folgasManuaisMJ, ...cMJ.map((i) => i + 1)].sort((a, b) => a - b);
+          melhor.folgasS = [...folgasManuaisS, ...cS.map((i) => i + 1)].sort((a, b) => a - b);
           copiaMelhor = [...copia];
         }
       }

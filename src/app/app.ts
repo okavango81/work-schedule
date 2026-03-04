@@ -78,26 +78,26 @@ export class App {
   }
 
   alternarFolgaManual(dia: number, mesItem: number, statusAtual: string) {
-    // Impede alteração nos dias do mês seguinte (visualização apenas)
     if (mesItem !== this.mes()) return;
 
     const mj = [...this.folgasManuaisMJ()];
     const sam = [...this.folgasManuaisS()];
 
-    // Lógica de alternância (Toggle)
     if (mj.includes(dia)) {
-      this.folgasManuaisMJ.set(mj.filter((d) => d !== dia));
+      this.folgasManuaisMJ.set(mj.filter((d) => d !== dia).sort((a, b) => a - b));
     } else if (sam.includes(dia)) {
-      this.folgasManuaisS.set(sam.filter((d) => d !== dia));
+      this.folgasManuaisS.set(sam.filter((d) => d !== dia).sort((a, b) => a - b));
     } else if (statusAtual === 'MENINO JESUS') {
       if (mj.length < 2) {
         mj.push(dia);
-        this.folgasManuaisMJ.set(mj);
+        // Ordena de forma crescente antes de setar o sinal
+        this.folgasManuaisMJ.set(mj.sort((a, b) => a - b));
       }
     } else if (statusAtual === 'SAMARITANO') {
       if (sam.length < 2) {
         sam.push(dia);
-        this.folgasManuaisS.set(sam);
+        // Ordena de forma crescente antes de setar o sinal
+        this.folgasManuaisS.set(sam.sort((a, b) => a - b));
       }
     }
 
