@@ -82,22 +82,26 @@ export class App {
 
     const mj = [...this.folgasManuaisMJ()];
     const sam = [...this.folgasManuaisS()];
+    const ordenar = (list: number[]) => list.sort((a, b) => a - b);
 
     if (mj.includes(dia)) {
-      this.folgasManuaisMJ.set(mj.filter((d) => d !== dia).sort((a, b) => a - b));
+      this.folgasManuaisMJ.set(ordenar(mj.filter((d) => d !== dia)));
     } else if (sam.includes(dia)) {
-      this.folgasManuaisS.set(sam.filter((d) => d !== dia).sort((a, b) => a - b));
+      this.folgasManuaisS.set(ordenar(sam.filter((d) => d !== dia)));
     } else if (statusAtual === 'MENINO JESUS') {
       if (mj.length < 2) {
-        mj.push(dia);
-        // Ordena de forma crescente antes de setar o sinal
-        this.folgasManuaisMJ.set(mj.sort((a, b) => a - b));
+        this.folgasManuaisMJ.set(ordenar([...mj, dia]));
       }
     } else if (statusAtual === 'SAMARITANO') {
-      if (sam.length < 2) {
-        sam.push(dia);
-        // Ordena de forma crescente antes de setar o sinal
-        this.folgasManuaisS.set(sam.sort((a, b) => a - b));
+      // NOVA REGRA: Valida se a quinzena do dia clicado já está ocupada
+      const isPrimeiraQuinzena = dia <= 15;
+      const jaTemNaQuinzena = sam.some((d) => (isPrimeiraQuinzena ? d <= 15 : d >= 16));
+
+      if (!jaTemNaQuinzena && sam.length < 2) {
+        this.folgasManuaisS.set(ordenar([...sam, dia]));
+      } else if (jaTemNaQuinzena) {
+        // Opcional: Alerta para o usuário entender o bloqueio
+        console.warn('O Samaritano exige folgas em quinzenas diferentes (Ciclo 16-15).');
       }
     }
 
