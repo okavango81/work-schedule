@@ -287,17 +287,17 @@
 
   .status
   {
-    font-size   : 0.75rem;
+    font-size   : 0.85rem;
     font-weight : 700;
     line-height : 1.2;
-    color       : #475569;
+    color       : #334253;
     margin-top  : 0.5rem;
   }
 
   .month-tag
   {
     display     : block;
-    font-size   : 0.55rem;
+    font-size   : 0.7rem;
     margin-top  : 4px;
     font-weight : bold;
     color       : #94a3b8;
@@ -312,6 +312,7 @@
     .status
     {
       color : var(--success);
+      text-transform: uppercase;
     }
 
     .weekday
