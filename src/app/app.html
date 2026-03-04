@@ -81,4 +81,10 @@
   } @else {
     <div class="loading">Calculando melhor estratégia...</div>
   }
+
+  @if (mostrarBotaoSubir()) {
+    <button class="btn-scroll-top" (click)="scrollToTop()" aria-label="Subir ao topo">
+      ▲
+    </button>
+  }
 </div>

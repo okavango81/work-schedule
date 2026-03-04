@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Resultado, WorkSchedule } from './service/work-schedule';
@@ -23,6 +23,9 @@ export class App {
   // Armazenamento do Cálculo
   resultado = signal<Resultado | null>(null);
 
+  // Signal para controlar se o botão aparece ou não
+  mostrarBotaoSubir = signal(false);
+
   constructor(private scheduleService: WorkSchedule) {
     // Gera a escala inicial automaticamente ao abrir
     this.gerarEscala();
@@ -43,6 +46,21 @@ export class App {
     { valor: 11, nome: 'Novembro' },
     { valor: 12, nome: 'Dezembro' },
   ];
+
+  // Escuta o evento de scroll da janela
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    // Se o scroll passar de 300px, mostra o botão
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    this.mostrarBotaoSubir.set(scrollY > 300);
+  }
+
+  scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth', // Subida suave
+    });
+  }
 
   gerarEscala() {
     try {
