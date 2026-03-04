@@ -8,7 +8,7 @@
   --card           : #ffffff;
   --text-main      : #1e293b;
   --text-muted     : #64748b;
-  --border         : #949494;
+  --border         : #bdbdbd;
 
   display          : block;
   font-family      : 'Inter', system-ui, sans-serif;
@@ -20,11 +20,11 @@
 // --- Layout Principal ---
 .container
 {
-  max-width     : 900px;
+  max-width     : 1080px;
   margin        : 0 auto;
   background    : var(--card);
   padding       : 2rem;
-  border-radius : 1rem;
+  border-radius : 1.4rem;
   box-shadow    : 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -196,10 +196,10 @@
   {
     grid-column   : 1 / -1;
     background    : #d6e9ff;
-    color         : #64748b;
+    color         : #778dab;
     padding       : 12px;
     text-align    : center;
-    font-size     : 0.9rem;
+    font-size     : 0.85rem;
     font-weight   : 700;
     border-radius : 6px;
     border        : 1px dashed #cbd5e1;
@@ -210,10 +210,10 @@
 // --- Cartão do Dia ---
 .day-card
 {
-  padding         : 1rem;
-  border-radius   : 0.75rem;
-  border          : 1px solid var(--border);
-  background      : white;
+  padding         : 1.2rem;
+  border-radius   : 0.8rem;
+  border          : 0.01rem solid rgba(227, 227, 227, 0.5);
+  background      : #fefefe;
   display         : flex;
   flex-direction  : column;
   justify-content : space-between;
@@ -221,6 +221,8 @@
   position        : relative;
   cursor          : pointer;
   transition      : all 0.2s ease;
+  margin-bottom   : 16px;
+  box-shadow      : 10px 16px 20px -4px rgba(128, 128, 128, 0.5);
 
   &:hover
   {
@@ -232,8 +234,9 @@
   // Estilo quando fixado manualmente
   &.manual
   {
-    border     : 2px solid var(--primary);
+    border     : 2px solid var(--success);
     box-shadow : 0 0 10px rgba(37, 99, 235, 0.2);
+    box-shadow      : 10px 16px 20px -4px rgba(128, 128, 128, 0.5);
 
     &::after
     {
@@ -271,9 +274,9 @@
 
     .weekday
     {
-      font-size      : 0.65rem;
+      font-size      : 0.75rem;
       font-weight    : 700;
-      color          : #7b91a8;
+      color          : #8b9db1;
       text-transform : uppercase;
     }
 
@@ -290,8 +293,8 @@
     font-size   : 0.85rem;
     font-weight : 700;
     line-height : 1.2;
-    color       : #334253;
-    margin-top  : 0.5rem;
+    color       : #7d90a9;
+    margin-top  : 0.4rem;
   }
 
   .month-tag
@@ -306,13 +309,13 @@
   // --- Estados de Cores ---
   &.folga
   {
-    background   : #d7ffe0;
+    background   : #c5ffd2;
     border-color : #bbf7d0;
 
     .status
     {
-      color : var(--success);
-      text-transform: uppercase;
+      color          : var(--success);
+      text-transform : uppercase;
     }
 
     .weekday
@@ -324,7 +327,7 @@
   &.domingo
   {
     background-color : #fef2f2;
-    border           : 1.5px solid #fecaca;
+    border           : 0.01rem  solid #fecaca;
 
     .weekday
     {
@@ -336,7 +339,7 @@
   &.sabado
   {
     background-color : #eeebff;
-    border           : 1.5px solid #c2b9ff;
+    border           : 0.01rem solid #c8c0fd;
   }
 
   &.folga.sabado
@@ -394,12 +397,12 @@
 {
   .btn-scroll-top
   {
-    bottom                  : 22px;
-    right                   : 18px;
+    bottom                  : 20px;
+    right                   : 20px;
     width                   : 50px;
     height                  : 50px;
-    backdrop-filter         : blur(3px);
-    -webkit-backdrop-filter : blur(3px);
+    backdrop-filter         : blur(2px);
+    -webkit-backdrop-filter : blur(2px);
     background              : rgba(37, 99, 235, 0.3);
   }
 }
@@ -410,7 +413,7 @@
 {
   :host
   {
-    padding : 1rem;
+    padding : 0.8rem;
   }
   .calendar-grid
   {
