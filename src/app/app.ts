@@ -1,4 +1,4 @@
-import { Component, signal} from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Resultado, WorkSchedule } from './service/work-schedule';
@@ -8,7 +8,7 @@ import { Resultado, WorkSchedule } from './service/work-schedule';
   standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './app.html',
-  styleUrl: './app.scss'
+  styleUrl: './app.scss',
 })
 export class App {
   // Configurações Iniciais
@@ -28,6 +28,22 @@ export class App {
     this.gerarEscala();
   }
 
+  // Dentro da classe App
+  meses = [
+    { valor: 1, nome: 'Janeiro' },
+    { valor: 2, nome: 'Fevereiro' },
+    { valor: 3, nome: 'Março' },
+    { valor: 4, nome: 'Abril' },
+    { valor: 5, nome: 'Maio' },
+    { valor: 6, nome: 'Junho' },
+    { valor: 7, nome: 'Julho' },
+    { valor: 8, nome: 'Agosto' },
+    { valor: 9, nome: 'Setembro' },
+    { valor: 10, nome: 'Outubro' },
+    { valor: 11, nome: 'Novembro' },
+    { valor: 12, nome: 'Dezembro' },
+  ];
+
   gerarEscala() {
     try {
       const res = this.scheduleService.calcularMelhorEscala(
@@ -35,11 +51,11 @@ export class App {
         this.mes(),
         this.localInicial(),
         this.folgasManuaisMJ(),
-        this.folgasManuaisS()
+        this.folgasManuaisS(),
       );
       this.resultado.set(res);
     } catch (error) {
-      console.error("Erro ao calcular escala:", error);
+      console.error('Erro ao calcular escala:', error);
     }
   }
 
@@ -52,9 +68,9 @@ export class App {
 
     // Lógica de alternância (Toggle)
     if (mj.includes(dia)) {
-      this.folgasManuaisMJ.set(mj.filter(d => d !== dia));
+      this.folgasManuaisMJ.set(mj.filter((d) => d !== dia));
     } else if (sam.includes(dia)) {
-      this.folgasManuaisS.set(sam.filter(d => d !== dia));
+      this.folgasManuaisS.set(sam.filter((d) => d !== dia));
     } else if (statusAtual === 'MENINO JESUS') {
       if (mj.length < 2) {
         mj.push(dia);
@@ -74,15 +90,18 @@ export class App {
     const res = this.resultado();
     if (!res || !res.escalaCompleta) return [];
 
-    return res.escalaCompleta.map(item => {
+    return res.escalaCompleta.map((item) => {
       // Cria a data correta para cada item (mês atual ou próximo)
       const dataRef = new Date(item.ano, item.mes - 1, item.dia);
       return {
         ...item,
-        diaSemana: dataRef.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase(),
-        isSabado:dataRef.getDay() === 6,
+        diaSemana: dataRef
+          .toLocaleDateString('pt-BR', { weekday: 'short' })
+          .replace('.', '')
+          .toUpperCase(),
+        isSabado: dataRef.getDay() === 6,
         isDomingo: dataRef.getDay() === 0,
-        nomeMes: dataRef.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
+        nomeMes: dataRef.toLocaleDateString('pt-BR', { month: 'long' }).toUpperCase(),
       };
     });
   }

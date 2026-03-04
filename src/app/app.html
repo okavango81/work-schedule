@@ -7,10 +7,8 @@
     <div class="field">
       <label>Mês de Referência</label>
       <select [(ngModel)]="mes" (change)="limpar()">
-        @for (m of [1,2,3,4,5,6,7,8,9,10,11,12]; track m) {
-          <option [value]="m">
-            {{ m | number:'2.0' }}
-          </option>
+        @for (m of meses; track m.valor) {
+          <option [value]="m.valor">{{ m.nome }}</option>
         }
       </select>
     </div>
@@ -51,7 +49,8 @@
 
         @if (item.dia === 1 && item.mes !== mes()) {
           <div class="month-divider">
-            PRÓXIMO MÊS (Quinzena Samaritano)
+            {{ item.nomeMes }}<br>
+            Quinzena Samaritano
           </div>
         }
 
