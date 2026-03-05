@@ -1,24 +1,31 @@
 <div class="container">
   <header class="header">
-    <h2>Gestor de Escala</h2>
+    <h2>Escala Hospital Infantil Sabará</h2>
+    <p>Regras: Máx 6 dias trabalhados, 1 domingo de folga por mês, máx 2 folgas a cada 14 dias.</p>
   </header>
 
   <section class="form-grid">
     <div class="field">
       <label>Mês de Referência</label>
-      <select [(ngModel)]="mes" (change)="limpar()">
-        @for (m of meses; track m.valor) {
-          <option [value]="m.valor">{{ m.nome }}</option>
-        }
-      </select>
-    </div>
 
-    <div class="field">
-      <label>Início do Mês</label>
-      <select [(ngModel)]="localInicial" (change)="gerarEscala()">
-        <option value="MENINO JESUS">Menino Jesus</option>
-        <option value="SAMARITANO">Samaritano</option>
-      </select>
+      <div class="custom-dropdown">
+        <button type="button" class="dropdown-trigger" (click)="dropdownAberto = !dropdownAberto">
+          <span>{{ getNomeMesAtual() }}</span>
+          <span class="arrow">▼</span>
+        </button>
+
+        @if (dropdownAberto) {
+          <div class="dropdown-menu">
+            @for (m of meses; track m.valor) {
+              <div class="dropdown-option"
+                   [class.selected]="mes() === m.valor"
+                   (click)="selecionarMes(m.valor)">
+                {{ m.nome }}
+              </div>
+            }
+          </div>
+        }
+      </div>
     </div>
 
     <div class="actions">
@@ -31,16 +38,12 @@
   @if (resultado()) {
     <section class="summary-cards">
       <div class="card highlight">
-        <small>Sequência Máxima</small>
+        <small>Maior Sequência de Trabalho</small>
         <span>{{ resultado()?.maiorSequencia }} dias</span>
       </div>
       <div class="card">
-        <small>Folgas No Menino Jesus</small>
-        <span>{{ resultado()?.folgasMJ?.join(' - ') }}</span>
-      </div>
-      <div class="card">
-        <small>Folgas No Samaritano</small>
-        <span>{{ resultado()?.folgasS?.join(' - ') }}</span>
+        <small>Folgas Agendadas</small>
+        <span>{{ resultado()?.folgas?.join(' - ') }}</span>
       </div>
     </section>
 
@@ -50,7 +53,7 @@
         @if (item.dia === 1 && item.mes !== mes()) {
           <div class="month-divider">
             {{ item.nomeMes }}<br>
-            1º Quinzena Samaritano
+            Projeção Próximo Mês
           </div>
         }
 
@@ -59,14 +62,14 @@
              [class.domingo]="item.isDomingo"
              [class.sabado]="item.isSabado"
              [class.proximo-mes]="item.mes !== mes()"
-             [class.manual]="item.mes === mes() && (folgasManuaisMJ().includes(item.dia) || folgasManuaisS().includes(item.dia))"
-             (click)="alternarFolgaManual(item.dia, item.mes, item.status)">
+             [class.manual]="item.mes === mes() && folgasManuaisAtual().includes(item.dia)"
+             (click)="alternarFolgaManual(item.dia, item.mes)">
 
           <div class="day-header">
             <span class="weekday">{{ item.diaSemana }}</span>
             <span class="day-num">{{ item.dia | number:'2.0' }}</span>
 
-            @if (item.mes === mes() && (folgasManuaisMJ().includes(item.dia) || folgasManuaisS().includes(item.dia))) {
+            @if (item.mes === mes() && folgasManuaisAtual().includes(item.dia)) {
               <span class="pin">📍</span>
             }
           </div>

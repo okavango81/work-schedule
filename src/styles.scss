@@ -1,1 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
+/* src/styles.scss - Estilo Global do Projeto */
+:root {
+  color-scheme: light !important;
+}
+
+select {
+  color-scheme: light !important;
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+}
+
+select option {
+  color-scheme: light !important;
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+}
