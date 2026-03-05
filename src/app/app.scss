@@ -131,10 +131,10 @@
 
     &.btn-outline
     {
-      font-size  : 0.9rem;
-      background : #e0f7ff;
-      border     : 1px solid #cbd5e1;
-      color      : var(--text-muted);
+      font-size     : 0.8rem;
+      background    : #e0f7ff;
+      border-radius : 2rem;
+      color         : var(--text-muted);
 
       &:hover
       {
@@ -159,6 +159,7 @@
     border-radius : 0.75rem;
     background    : #f1f5f9;
     border-left   : 4px solid var(--primary);
+    box-shadow    : 8px 16px 20px -4px rgba(128, 128, 128, 0.3);
 
     small
     {
@@ -210,9 +211,9 @@
 // --- Cartão do Dia ---
 .day-card
 {
-  padding         : 1.2rem;
-  border-radius   : 0.8rem;
-  border          : 0.01rem solid rgba(227, 227, 227, 0.5);
+  padding         : 1.4rem 0.8rem;
+  border-radius   : 1rem;
+  border          : 0.05rem solid rgba(227, 227, 227, 0.4);
   background      : #fefefe;
   display         : flex;
   flex-direction  : column;
@@ -222,13 +223,13 @@
   cursor          : pointer;
   transition      : all 0.2s ease;
   margin-bottom   : 16px;
-  box-shadow      : 10px 16px 20px -4px rgba(128, 128, 128, 0.5);
+  box-shadow      : 8px 16px 20px -4px rgba(128, 128, 128, 0.4);
 
   &:hover
   {
     border-color : var(--primary);
     transform    : translateY(-2px);
-    box-shadow   : 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow   : 10px 16px 20px -4px rgba(128, 128, 128, 0.5);
   }
 
   // Estilo quando fixado manualmente
@@ -236,7 +237,7 @@
   {
     border     : 2px solid var(--success);
     box-shadow : 0 0 10px rgba(37, 99, 235, 0.2);
-    box-shadow      : 10px 16px 20px -4px rgba(128, 128, 128, 0.5);
+    box-shadow : 10px 16px 20px -4px rgba(128, 128, 128, 0.5);
 
     &::after
     {
@@ -290,11 +291,11 @@
 
   .status
   {
-    font-size   : 0.85rem;
-    font-weight : 700;
+    font-size   : 0.75rem;
     line-height : 1.2;
     color       : #7d90a9;
     margin-top  : 0.4rem;
+    text-align  : center;
   }
 
   .month-tag
@@ -327,7 +328,7 @@
   &.domingo
   {
     background-color : #fef2f2;
-    border           : 0.01rem  solid #fecaca;
+    border           : 0.01rem solid #fecaca;
 
     .weekday
     {
@@ -392,21 +393,6 @@
   }
 }
 
-// Ajuste para telas menores (celular)
-@media (max-width : 480px)
-{
-  .btn-scroll-top
-  {
-    bottom                  : 20px;
-    right                   : 20px;
-    width                   : 50px;
-    height                  : 50px;
-    backdrop-filter         : blur(2px);
-    -webkit-backdrop-filter : blur(2px);
-    background              : rgba(37, 99, 235, 0.3);
-  }
-}
-
 
 // --- Responsividade ---
 @media (max-width : 480px)
@@ -422,5 +408,16 @@
   .actions
   {
     flex-direction : column;
+  }
+
+  .btn-scroll-top
+  {
+    bottom                  : 20px;
+    right                   : 20px;
+    width                   : 50px;
+    height                  : 50px;
+    backdrop-filter         : blur(2px);
+    -webkit-backdrop-filter : blur(2px);
+    background              : rgba(37, 99, 235, 0.3);
   }
 }
