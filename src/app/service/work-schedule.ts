@@ -17,8 +17,7 @@ export interface Resultado {
 @Injectable({ providedIn: 'root' })
 export class WorkSchedule {
   /**
-   * Valida se a lista de folgas (incluindo um candidato opcional)
-   * respeita a regra de no máximo 2 folgas em qualquer janela de 14 dias.
+   * Valida se a lista de folgas respeita a regra de no máximo 2 folgas em qualquer janela de 14 dias.
    */
   public validarRegra14Dias(
     ano: number,
@@ -62,7 +61,7 @@ export class WorkSchedule {
   ): Resultado {
     const totalDiasMes = new Date(ano, mes, 0).getDate();
 
-    // ---- 1. Identificar domingos do mês ----
+    // 1. Mapeia domingos do mês
     const domingos: number[] = [];
     for (let d = 1; d <= totalDiasMes; d++) {
       if (new Date(ano, mes - 1, d).getDay() === 0) {
@@ -70,199 +69,108 @@ export class WorkSchedule {
       }
     }
 
-    // ---- 2. Inicializar lista de folgas com as manuais ----
-    let folgasFinais = [...folgasManuais].sort((a, b) => a - b);
+    // 2. Define o único domingo de folga permitido
+    const domingosManuais = folgasManuais.filter((d) => domingos.includes(d));
+    const domingoFolga =
+      domingosManuais.length > 0 ? domingosManuais[0] : domingos[Math.floor(domingos.length / 2)];
 
-    // ---- 3. Regra do domingo único (garantir exatamente 1) ----
-    const domingosMarcados = folgasFinais.filter((d) => domingos.includes(d));
-    if (domingosMarcados.length === 0 && domingos.length > 0) {
-      const domIdeal = domingos[Math.floor(domingos.length / 2)];
-      folgasFinais.push(domIdeal);
-    } else if (domingosMarcados.length > 1) {
-      const primeiroDom = domingosMarcados[0];
-      folgasFinais = folgasFinais.filter((d) => !domingos.includes(d) || d === primeiroDom);
-    }
-    folgasFinais.sort((a, b) => a - b);
+    // 3. Ponto de origem contínuo do mês anterior
+    const inicioVirtual =
+      ultimaFolgaMesAnterior > 0
+        ? -(new Date(ano, mes - 1, 0).getDate() - ultimaFolgaMesAnterior)
+        : -5;
 
-    // ---- 4. Funções auxiliares ----
-    const obterIntervalos = (folgas: number[]) => {
-      let inicioVirtual = 0;
-      if (ultimaFolgaMesAnterior > 0) {
-        const diasMesAnt = new Date(ano, mes - 1, 0).getDate();
-        inicioVirtual = -(diasMesAnt - ultimaFolgaMesAnterior);
-      }
-      const arr = [inicioVirtual, ...[...folgas].sort((a, b) => a - b), totalDiasMes + 1];
-      const ints = [];
-      for (let i = 0; i < arr.length - 1; i++) {
-        ints.push({
-          inicio: arr[i],
-          fim: arr[i + 1],
-          tamanho: arr[i + 1] - arr[i] - 1,
-        });
-      }
-      return ints;
-    };
+    // 4. Algoritmo combinatório para encontrar escalas estritamente válidas
+    const sequenciasValidas: number[][] = [];
 
-    // Verifica se um dia é domingo
-    const isDomingo = (dia: number) => domingos.includes(dia);
+    const buscar = (atual: number[], ultimoDia: number) => {
+      // Passos equivalentes a ciclos de 5, 6 e 4 dias de trabalho respectivamente (incluindo o dia da folga)
+      const passos = [6, 7, 5];
 
-    // ---- 5. LEI ABSOLUTA 1: Quebrar intervalos > 6 dias (prioridade máxima) ----
-    let iteracoes = 0;
-    let intervalos = obterIntervalos(folgasFinais);
+      for (const passo of passos) {
+        const proximo = ultimoDia + passo;
 
-    while (intervalos.some((i) => i.tamanho > 6) && iteracoes < 100) {
-      intervalos.sort((a, b) => b.tamanho - a.tamanho);
-      const maior = intervalos[0];
+        // Ao ultrapassar o mês, valida a sequência gerada
+        if (proximo > totalDiasMes) {
+          const temDomingoObrigatorio = atual.includes(domingoFolga);
+          const temDomingoProibido = atual.some((d) => domingos.includes(d) && d !== domingoFolga);
+          const temFolgasManuais = folgasManuais.every((f) => atual.includes(f));
 
-      let diaEncontrado = -1;
-      for (let d = Math.max(1, maior.inicio + 1); d < maior.fim; d++) {
-        if (d > totalDiasMes) break;
-
-        // ⛔️ Proíbe domingos – já temos um domingo de folga
-        if (isDomingo(d)) continue;
-
-        // Proíbe folgas adjacentes
-        if (
-          folgasFinais.includes(d) ||
-          folgasFinais.includes(d - 1) ||
-          folgasFinais.includes(d + 1)
-        ) {
+          if (temDomingoObrigatorio && !temDomingoProibido && temFolgasManuais) {
+            sequenciasValidas.push([...atual]);
+          }
           continue;
         }
 
-        // Proíbe dia 1 se o último dia do mês anterior foi folga
-        if (d === 1 && ultimaFolgaMesAnterior > 0) {
-          const diasMesAnt = new Date(ano, mes - 1, 0).getDate();
-          if (ultimaFolgaMesAnterior === diasMesAnt) continue;
+        // Bloqueia qualquer domingo diferente do único permitido
+        if (domingos.includes(proximo) && proximo !== domingoFolga) {
+          continue;
         }
 
-        // Tenta respeitar a regra de 14 dias, mas se não for possível, força
-        if (!this.validarRegra14Dias(ano, mes, folgasFinais, ultimaFolgaMesAnterior, d)) {
-          if (iteracoes < 99) continue; // só força na última tentativa
+        atual.push(proximo);
+        buscar(atual, proximo);
+        atual.pop();
+      }
+    };
+
+    buscar([], inicioVirtual);
+
+    // 5. Escolhe a sequência que melhor alterna entre 5 e 6 dias (padrão 5-1-6-1)
+    let melhoresFolgas: number[] = [];
+    let melhorPontuacao = -Infinity;
+
+    for (const seq of sequenciasValidas) {
+      let pontuacao = 0;
+      let prev = inicioVirtual;
+      let cicloEsperado = 5; // Começa preferindo 5, depois alterna para 6
+
+      for (let i = 0; i < seq.length; i++) {
+        const trabalhados = seq[i] - prev - 1;
+
+        // Bonifica ciclos que seguem o padrão alternado desejado (5, depois 6, depois 5...)
+        if (trabalhados === cicloEsperado) {
+          pontuacao += 20;
+        } else if (trabalhados === 5 || trabalhados === 6) {
+          pontuacao += 10;
+        } else if (trabalhados === 4) {
+          pontuacao += 2; // Coringa (usado apenas quando necessário)
         }
 
-        diaEncontrado = d;
-        break;
+        // Alterna o ciclo esperado para o próximo passo
+        cicloEsperado = cicloEsperado === 5 ? 6 : 5;
+        prev = seq[i];
       }
 
-      if (diaEncontrado !== -1) {
-        folgasFinais.push(diaEncontrado);
-        folgasFinais.sort((a, b) => a - b);
-      } else {
-        // Força no meio do maior intervalo, mas evita domingo
-        let meio = Math.floor((maior.inicio + maior.fim) / 2);
-        // Se o meio for domingo, tenta o próximo ou anterior
-        if (isDomingo(meio)) {
-          let offset = 1;
-          while (isDomingo(meio + offset) || isDomingo(meio - offset)) {
-            offset++;
-            if (meio + offset >= maior.fim && meio - offset <= maior.inicio) break;
-          }
-          if (!isDomingo(meio + offset) && meio + offset < maior.fim) meio = meio + offset;
-          else if (!isDomingo(meio - offset) && meio - offset > maior.inicio) meio = meio - offset;
-          else break; // não encontrou alternativa
-        }
-        if (
-          meio > maior.inicio &&
-          meio < maior.fim &&
-          !folgasFinais.includes(meio) &&
-          !isDomingo(meio)
-        ) {
-          folgasFinais.push(meio);
-          folgasFinais.sort((a, b) => a - b);
-        } else {
-          break;
-        }
+      if (pontuacao > melhorPontuacao) {
+        melhorPontuacao = pontuacao;
+        melhoresFolgas = seq;
       }
-
-      iteracoes++;
-      intervalos = obterIntervalos(folgasFinais);
     }
 
-    // ---- 6. Pós-processamento para ajustar a regra de 14 dias ----
-    let viola14 = !this.validarRegra14Dias(ano, mes, folgasFinais, ultimaFolgaMesAnterior);
-    let tentativas = 0;
-    while (viola14 && tentativas < 30) {
-      let removida = false;
-      for (const f of [...folgasFinais]) {
-        // Não remove folgas manuais nem domingos
-        if (folgasManuais.includes(f) || isDomingo(f)) continue;
-        const testList = folgasFinais.filter((d) => d !== f);
-        if (this.validarRegra14Dias(ano, mes, testList, ultimaFolgaMesAnterior)) {
-          folgasFinais = testList;
-          removida = true;
-          break;
-        }
-      }
-      if (!removida) break;
-      viola14 = !this.validarRegra14Dias(ano, mes, folgasFinais, ultimaFolgaMesAnterior);
-      tentativas++;
-    }
+    const folgasFinais = (melhoresFolgas.length > 0 ? melhoresFolgas : [domingoFolga]).sort(
+      (a, b) => a - b,
+    );
 
-    // ---- 7. Garantir mínimo de 4 folgas (sem domingos) ----
-    iteracoes = 0;
-    while (folgasFinais.length < 4 && iteracoes < 30) {
-      intervalos = obterIntervalos(folgasFinais);
-      intervalos.sort((a, b) => b.tamanho - a.tamanho);
-      const maior = intervalos[0];
-      if (maior.tamanho <= 3) break;
-
-      let diaEncontrado = -1;
-      for (let d = Math.max(1, maior.inicio + 1); d < maior.fim; d++) {
-        // ⛔️ Proíbe domingos
-        if (isDomingo(d)) continue;
-        if (
-          !folgasFinais.includes(d) &&
-          !folgasFinais.includes(d - 1) &&
-          !folgasFinais.includes(d + 1)
-        ) {
-          if (
-            this.validarRegra14Dias(ano, mes, folgasFinais, ultimaFolgaMesAnterior, d) ||
-            iteracoes >= 29
-          ) {
-            diaEncontrado = d;
-            break;
-          }
-        }
-      }
-
-      if (diaEncontrado !== -1) {
-        folgasFinais.push(diaEncontrado);
-        folgasFinais.sort((a, b) => a - b);
-      } else {
-        break;
-      }
-      iteracoes++;
-    }
-
-    folgasFinais.sort((a, b) => a - b);
-
-    // ---- 8. Montagem final ----
+    // 6. Montagem do resultado final
     const escalaDias = Array(totalDiasMes).fill('SABARÁ');
     folgasFinais.forEach((d) => (escalaDias[d - 1] = 'F'));
 
     const sequenciasFinais = this.obterSequencias(escalaDias);
-    const ultimaFolga = folgasFinais.length > 0 ? folgasFinais[folgasFinais.length - 1] : 0;
-
-    if (ultimaFolgaMesAnterior > 0 && folgasFinais.length > 0) {
-      const diasMesAnt = new Date(ano, mes - 1, 0).getDate();
-      const virada = diasMesAnt - ultimaFolgaMesAnterior + (folgasFinais[0] - 1);
-      sequenciasFinais.push(virada);
-    }
+    const ultimaFolgaDoMes = folgasFinais.length > 0 ? folgasFinais[folgasFinais.length - 1] : 0;
 
     const escalaCompleta = this.construirEscalaFinal(
       ano,
       mes,
       totalDiasMes,
       folgasFinais,
-      ultimaFolga,
+      ultimaFolgaDoMes,
     );
 
     return {
       maiorSequencia: sequenciasFinais.length > 0 ? Math.max(...sequenciasFinais) : 0,
       folgas: folgasFinais,
       escalaCompleta,
-      ultimaFolgaMes: ultimaFolga,
+      ultimaFolgaMes: ultimaFolgaDoMes,
     };
   }
 
@@ -304,7 +212,7 @@ export class WorkSchedule {
     const proxAno = dataProx.getFullYear();
 
     const diasAteFimDoMes = ultimaFolgaDoMes > 0 ? totalDias - ultimaFolgaDoMes : 0;
-    const primeiraFolgaProximoMes = Math.max(1, 7 - diasAteFimDoMes);
+    const primeiraFolgaProximoMes = Math.max(1, 6 - diasAteFimDoMes);
 
     for (let i = 1; i <= 15; i++) {
       escala.push({

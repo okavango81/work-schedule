@@ -17,7 +17,6 @@ export class App {
 
   dropdownAberto = false;
 
-  // Memória de folgas manuais por mês ('Ano-Mes')
   folgasManuaisMap = signal<Record<string, number[]>>({});
 
   folgasManuaisAtual = computed(() => {
@@ -28,7 +27,6 @@ export class App {
   resultado = signal<Resultado | null>(null);
   mostrarBotaoSubir = signal(false);
 
-  // Armazena a última folga do mês anterior para validação da regra de 14 dias
   ultimaFolgaMesAnterior = signal(0);
 
   constructor(private scheduleService: WorkSchedule) {
@@ -83,7 +81,6 @@ export class App {
       const chaveAnt = `${anoAnt}-${mesAnt.toString().padStart(2, '0')}`;
       const folgasAnt = this.folgasManuaisMap()[chaveAnt] || [];
 
-      // Calcula o mês anterior para obter a última folga
       const resAnterior = this.scheduleService.calcularMelhorEscala(anoAnt, mesAnt, folgasAnt, 0);
       this.ultimaFolgaMesAnterior.set(resAnterior.ultimaFolgaMes);
 
@@ -103,9 +100,7 @@ export class App {
   alternarFolgaManual(dia: number, mesItem: number) {
     if (mesItem !== this.mes()) return;
 
-    let atuais = [...this.folgasManuaisAtual()];
-    const ordenar = (list: number[]) => list.sort((a, b) => a - b);
-
+    let atuais = [...this.folgasManuaisAtual()].sort((a, b) => a - b);
     const dataClicada = new Date(this.ano(), this.mes() - 1, dia);
     const isDomingoClicado = dataClicada.getDay() === 0;
 
@@ -113,13 +108,27 @@ export class App {
       // Remover folga
       atuais = atuais.filter((d) => d !== dia);
     } else {
-      // 1. Trava anti-folgas seguidas (adjacentes)
+      // 1. Proíbe folgas seguidas
       if (atuais.includes(dia - 1) || atuais.includes(dia + 1)) {
         alert('Regra violada: Não é permitido marcar duas folgas seguidas!');
         return;
       }
 
-      // 2. Trava do Domingo Único: se for domingo, remove qualquer outro domingo do mês
+      // 2. Garante o ciclo mínimo de 4 dias de trabalho entre folgas
+      const folgaAnterior = [...atuais].filter((d) => d < dia).pop();
+      const proximaFolga = [...atuais].filter((d) => d > dia).shift();
+
+      if (folgaAnterior && dia - folgaAnterior - 1 < 4) {
+        alert('Regra violada: O ciclo mínimo de trabalho entre folgas é de 4 dias!');
+        return;
+      }
+
+      if (proximaFolga && proximaFolga - dia - 1 < 4) {
+        alert('Regra violada: O ciclo mínimo de trabalho entre folgas é de 4 dias!');
+        return;
+      }
+
+      // 3. Regra do Domingo Único
       if (isDomingoClicado) {
         atuais = atuais.filter((d) => {
           const dataExistente = new Date(this.ano(), this.mes() - 1, d);
@@ -127,13 +136,13 @@ export class App {
         });
       }
 
-      // 3. Limite máximo de 6 folgas totais
+      // 4. Limite de 6 folgas no mês
       if (atuais.length >= 6) {
         alert('Limite de 6 folgas manuais atingido!');
         return;
       }
 
-      // 4. Validação da regra de 14 dias (considerando a última folga do mês anterior)
+      // 5. Validação de no máximo 2 folgas em qualquer janela de 14 dias
       const novaLista = [...atuais, dia];
       if (
         !this.scheduleService.validarRegra14Dias(
@@ -147,12 +156,11 @@ export class App {
         return;
       }
 
-      // Se passou em todas as validações, adiciona
       atuais.push(dia);
     }
 
     const chave = `${this.ano()}-${this.mes().toString().padStart(2, '0')}`;
-    this.folgasManuaisMap.update((map) => ({ ...map, [chave]: ordenar(atuais) }));
+    this.folgasManuaisMap.update((map) => ({ ...map, [chave]: atuais.sort((a, b) => a - b) }));
 
     this.gerarEscala();
   }
