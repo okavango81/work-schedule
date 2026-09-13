@@ -19,9 +19,9 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "outputPath": "dist/work-schedule",
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist/work-schedule",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
