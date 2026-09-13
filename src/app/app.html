@@ -1,83 +1,78 @@
-<div class="container">
+<div class="app-container">
   <header class="header">
-    <h2>Escala Hospital Infantil Sabará</h2>
-    <p>Regras Aplicadas: Min 4 dias trabalhados - Máx 6 dias trabalhados - 1 domingo de folga por mês.</p>
+    <h2>Escala Sabará</h2>
+    <p>Min 4 • Máx 6 • 1 domingo de folga/mês</p>
   </header>
 
-  <section class="form-grid">
-    <div class="field">
-      <label>Mês de Referência</label>
-
-      <div class="custom-dropdown">
-        <button type="button" class="dropdown-trigger" (click)="dropdownAberto = !dropdownAberto">
-          <span>{{ getNomeMesAtual() }}</span>
-          <span class="arrow">▼</span>
-        </button>
-
-        @if (dropdownAberto) {
-          <div class="dropdown-menu">
-            @for (m of meses; track m.valor) {
-              <div class="dropdown-option"
-                   [class.selected]="mes() === m.valor"
-                   (click)="selecionarMes(m.valor)">
-                {{ m.nome }}
-              </div>
-            }
-          </div>
-        }
-      </div>
+  <section class="controls">
+    <div class="custom-dropdown">
+      <button class="dropdown-trigger"
+              (click)="dropdownAberto = !dropdownAberto"
+              [attr.aria-expanded]="dropdownAberto"
+              aria-haspopup="listbox">
+        <span class="mes-selecionado">{{ getNomeMesAtual() }}</span>
+        <span class="arrow" [class.open]="dropdownAberto">▼</span>
+      </button>
+      @if (dropdownAberto) {
+        <div class="dropdown-menu" role="listbox">
+          @for (m of meses; track m.valor) {
+            <div class="dropdown-option"
+                 [class.selected]="mes() === m.valor"
+                 (click)="selecionarMes(m.valor)"
+                 role="option">
+              {{ m.nome }}
+            </div>
+          }
+        </div>
+      }
     </div>
-
-    <div class="actions">
-      <button class="btn-outline" (click)="limpar()">Resetar Folgas Manuais</button>
-    </div>
+    <button class="btn-reset" (click)="limpar()">↻ Resetar</button>
+    <button class="btn-whatsapp" (click)="enviarWhatsApp()" title="Enviar folgas no WhatsApp">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+    </button>
   </section>
-
-  <hr class="divider">
 
   @if (resultado()) {
     <section class="summary-cards">
-      <div class="card highlight">
-        <small>Maior Sequência de Trabalho</small>
+      <div class="card card-sequencia">
+        <small>Maior Sequência</small>
         <span>{{ resultado()?.maiorSequencia }} dias</span>
       </div>
-      <div class="card">
+      <div class="card card-folgas">
         <small>Folgas Agendadas</small>
-        <span>{{ resultado()?.folgas?.join(' - ') }}</span>
+        <span>{{ resultado()?.folgas?.length ? resultado()?.folgas?.join(', ') : '-' }}</span>
       </div>
     </section>
 
+    <div class="instruction-banner">
+      <span>Pressione e segure um dia para alternar a folga</span>
+    </div>
+
     <div class="calendar-grid">
+      <div class="weekday-header">Dom</div>
+      <div class="weekday-header">Seg</div>
+      <div class="weekday-header">Ter</div>
+      <div class="weekday-header">Qua</div>
+      <div class="weekday-header">Qui</div>
+      <div class="weekday-header">Sex</div>
+      <div class="weekday-header">Sáb</div>
+
+      @for (vazio of getDiasEmBrancoInicio(); track $index) {
+        <div class="day-card empty"></div>
+      }
+
       @for (item of getDiasParaExibir(); track (item.dia + '-' + item.mes)) {
-
-        @if (item.dia === 1 && item.mes !== mes()) {
-          <div class="month-divider">
-            {{ item.nomeMes }}<br>
-            Projeção Próximo Mês
-          </div>
-        }
-
         <div class="day-card"
-             [class.folga]="item.status.includes('Folga')"
+             [class.folga]="item.status === 'Folga'"
              [class.domingo]="item.isDomingo"
-             [class.sabado]="item.isSabado"
              [class.proximo-mes]="item.mes !== mes()"
-             [class.manual]="item.mes === mes() && folgasManuaisAtual().includes(item.dia)"
-             (click)="alternarFolgaManual(item.dia, item.mes)">
-
-          <div class="day-header">
-            <span class="weekday">{{ item.diaSemana }}</span>
-            <span class="day-num">{{ item.dia | number:'2.0' }}</span>
-
-            @if (item.mes === mes() && folgasManuaisAtual().includes(item.dia)) {
-              <span class="pin">📍</span>
-            }
-          </div>
-
-          <div class="status">
-            {{ item.status }}
-            <span class="month-tag">{{ item.nomeMes }}</span>
-          </div>
+             [appLongPress]="600"
+             (longPress)="alternarFolgaManual(item.dia, item.mes)"
+             (contextmenu)="$event.preventDefault()"
+             draggable="false">
+          <span class="day-num">{{ item.dia }}</span>
         </div>
       }
     </div>
@@ -86,8 +81,8 @@
   }
 
   @if (mostrarBotaoSubir()) {
-    <button class="btn-scroll-top" (click)="scrollToTop()" aria-label="Subir ao topo">
-      ▲
+    <button class="btn-scroll-top" (click)="scrollToTop()">
+      ↑ Subir
     </button>
   }
 </div>
