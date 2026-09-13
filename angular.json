@@ -19,6 +19,7 @@
       "prefix": "app",
       "architect": {
         "build": {
+          "outputPath": "dist/work-schedule",
           "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
@@ -30,9 +31,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ]
+            "styles": ["src/styles.scss"]
           },
           "configurations": {
             "production": {
