@@ -57,3 +57,11 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+### 🚀 Deploy no GitHub Pages
+
+Para gerar a build de produção e enviar para o GitHub Pages, execute o seguinte comando no terminal:
+
+```bash
+ng build --configuration production --base-href /work-schedule/ && npx angular-cli-ghpages --dir=dist/work-schedule/browser
+```
